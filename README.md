@@ -2,14 +2,8 @@
 
 An attempt at making a chess engine that reaches 2700 ELO on Lichess.
 
-## structure
+## todo
 
-* board
-* bitboards
-* movegen
-* evaluate
-* search
-* transpositions
-* uci
-* perft
-* sygzy tables
+* fix `BitBoards`, I need to think about storage for more than two seconds
+* make a really simple implementation
+* begin a chain of ELO benchmarks

@@ -2,23 +2,64 @@
 
 use super::castling::Castling;
 use super::coord::{File, Square};
-use super::pseudo::BoardUnchecked;
 use super::{Piece, Player};
 use crate::board::bits::BitBoards;
 use crate::board::coord::Rank;
+use core::fmt;
 
+/// An error that can occur during FEN parsing.
 #[derive(Debug, Clone, Copy)]
 pub enum FromFenError {
+  /// Missing the piece info
   NoPieces,
+  /// Missing side-to-move info
   NoSideToMove,
+  /// Missing castling info
   NoCastling,
+  /// Missing en-passant info
   NoEnPassant,
+  /// En-passant info too short
   EnPassantTooShort,
+  /// Missing half-moves info
   NoHalfmoves,
+  /// Unexepected character
   Unexpected(char),
 }
 
-pub fn parse_fen(fen: &str) -> Result<BoardUnchecked, FromFenError> {
+impl fmt::Display for FromFenError {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::NoPieces => write!(f, "Missing the piece info"),
+      Self::NoSideToMove => write!(f, "Missing side-to-move info"),
+      Self::NoCastling => write!(f, "Missing castling info"),
+      Self::NoEnPassant => write!(f, "Missing en-passant info"),
+      Self::EnPassantTooShort => write!(f, "En-passant info too short"),
+      Self::NoHalfmoves => write!(f, "Missing half-moves info"),
+      Self::Unexpected(ch) => write!(f, "Unexepected character `{ch}`"),
+    }
+  }
+}
+
+/// A representation of a chess board that has not been checked for validity.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct BoardUnchecked {
+  /// Bits boards for each piece and each player.
+  pub bits: BitBoards,
+  /// Who's turn it is.
+  pub player: Player,
+  /// Castling rights for each player.
+  pub castling: Castling,
+  /// The [Square] where an en-passant capture can be made.
+  pub en_passant: Option<Square>,
+  /// The number of half moves since a piece capture or pawn move.
+  pub half_moves: u8,
+}
+
+/// Parse a [BoardUnchecked] from the given FEN string.
+///
+/// Validity checks on FEN notation inputs are limited.  A known issue with this parser is that
+/// you could overwrite pieces by placing more than eight in a row.
+pub const fn parse_fen(fen: &str) -> Result<BoardUnchecked, FromFenError> {
   enum State {
     Pieces,
     SideToMove,
@@ -159,13 +200,15 @@ pub fn parse_fen(fen: &str) -> Result<BoardUnchecked, FromFenError> {
 
 #[cfg(test)]
 mod tests {
+  use crate::board::coord::Square;
+  use crate::board::{Piece, Player};
+
   #[test]
   fn starting() {
-    // let fen = super::parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
-    let fen =
-      super::parse_fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2 ").unwrap();
+    let fen = super::parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
 
-    println!();
-    println!("{}", fen.bits);
+    assert_eq!(fen.bits.piece_at(Square::A1), Some(Piece::Rook));
+    assert_eq!(fen.player, Player::White);
+    assert_eq!(fen.half_moves, 0);
   }
 }

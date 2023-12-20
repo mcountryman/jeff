@@ -3,7 +3,6 @@ pub mod castling;
 pub mod coord;
 pub mod display;
 pub mod fen;
-pub mod pseudo;
 
 use self::bits::BitBoards;
 use self::castling::Castling;
