@@ -1,0 +1,17 @@
+[package]
+name = "jeff"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+std = []
+
+[dependencies]
+bitflags = "2.4.1"
+konst = { version = "0.3.8", features = ["iter"] }
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
